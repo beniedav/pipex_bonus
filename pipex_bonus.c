@@ -24,7 +24,7 @@ void	pipex_init(t_pipex *pipex)
 	pipex->pids = NULL;
 	pipex->cmds = NULL;
 	pipex->cmd_paths = NULL;
-	pipex->cmd_count = -1;
+	pipex->cmd_count = 0;
 	pipex->limiter = NULL;
 	pipex->permission_denied = 0;
 }
@@ -34,7 +34,7 @@ int	main(int ac, char **av, char **envp)
 	t_pipex	pipex;
 
 	pipex_init(&pipex);
-	//init_struct(&pipex, av, envp);
-	//exec_processes(&pipex, envp);
+	init_struct(&pipex, av, envp, ac);
+	exec_processes(&pipex, envp);
 	return (1);
 }

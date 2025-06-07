@@ -43,12 +43,12 @@ char		**get_path_var(char **envp);
 char		*find_command_path(char **paths, char *cmd);
 
 // init	struct helper
-void		init_input_fds(t_pipex *pipex, char **av);
-void		init_input_cmds(t_pipex *pipex, char **av, char **envp);
+void		init_input_fds(t_pipex *pipex, int argc, char **av);
+void		init_input_cmds(t_pipex *pipex, int argc,  char **av, char **envp);
 void		init_cmds(t_pipex *pipex);
 
 // init struct
-void		init_struct(t_pipex *pipex, char **av, char **envp);
+void		init_struct(t_pipex *pipex, char **av, char **envp, int argc);
 
 // processes
 void		exec_processes(t_pipex *pipex, char **envp);

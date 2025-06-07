@@ -10,6 +10,8 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "pipex_bonus.h"
+
 void	init_input_fds(t_pipex *pipex, int argc, char **av)
 {
 	pipex->infile = av[1];
@@ -39,9 +41,11 @@ void	init_input_cmds(t_pipex *pipex, int argc, char **av, char **envp)
 	int	cmd_end = argc - 2;
 
 	pipex->cmd_count = cmd_end - cmd_start + 1;
-	pipex->cmds = malloc(sizeof(char **) * (pipex->cmd_count));
+
+	pipex->cmds = malloc(sizeof(char **) * pipex->cmd_count);
 	if (!pipex->cmds)
 		custom_exit("malloc cmds failed", 1);
+
 	i = 0;
 	while (cmd_start + i <= cmd_end)
 	{
@@ -55,6 +59,7 @@ void	init_input_cmds(t_pipex *pipex, int argc, char **av, char **envp)
 		}
 		i++;
 	}
+
 	pipex->cmd_paths = get_path_var(envp);
 	if (!pipex->cmd_paths)
 		custom_exit("couldn't extract PATH", 1);
@@ -72,8 +77,7 @@ void	init_cmds(t_pipex *pipex)
 		if (!path)
 		{
 			if (pipex->cmds[i][0])
-				write(2, pipex->cmds[i][0],
-					ft_strlen(pipex->cmds[i][0]));
+				write(2, pipex->cmds[i][0], ft_strlen(pipex->cmds[i][0]));
 			write(2, ": command not found\n", 21);
 		}
 		else
@@ -85,10 +89,35 @@ void	init_cmds(t_pipex *pipex)
 	}
 }
 
+void	allocate_pipes(t_pipex *pipex)
+{
+	int	i;
+
+	pipex->pipes = malloc(sizeof(int *) * (pipex->cmd_count - 1));
+	if (!pipex->pipes)
+		custom_exit("malloc pipes failed", 1);
+
+	i = 0;
+	while (i < pipex->cmd_count - 1)
+	{
+		pipex->pipes[i] = malloc(sizeof(int) * 2);
+		if (!pipex->pipes[i])
+			custom_exit("malloc pipe pair failed", 1);
+		if (pipe(pipex->pipes[i]) == -1)
+			custom_exit("pipe creation failed", 1);
+		i++;
+	}
+}
+
 void	init_struct(t_pipex *pipex, char **av, char **envp, int argc)
 {
 	init_input_fds(pipex, argc, av);
 	init_input_cmds(pipex, argc, av, envp);
 	init_cmds(pipex);
-	return ;
+
+	pipex->pids = malloc(sizeof(pid_t) * pipex->cmd_count);
+	if (!pipex->pids)
+		custom_exit("malloc pids failed", 1);
+
+	allocate_pipes(pipex);
 }
