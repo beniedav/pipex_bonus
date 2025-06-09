@@ -6,7 +6,7 @@
 /*   By: badou <badou@student.42barcelona.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 18:50:53 by badou             #+#    #+#             */
-/*   Updated: 2025/06/05 18:54:01 by badou            ###   ########.fr       */
+/*   Updated: 2025/06/09 17:52:42 by badou            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ char		*find_command_path(char **paths, char *cmd);
 
 // init	struct helper
 void		init_input_fds(t_pipex *pipex, int argc, char **av);
-void		init_input_cmds(t_pipex *pipex, int argc,  char **av, char **envp);
+void		init_input_cmds(t_pipex *pipex, int argc, char **av, char **envp);
 void		init_cmds(t_pipex *pipex);
 
 // init struct
@@ -61,4 +61,9 @@ void		close_fds(t_pipex *pipex);
 void		cleanup(t_pipex *pipex);
 void		safe_close(int fd);
 
+// heredoc
+
+void		init_input_fds_heredoc(t_pipex *pipex, int argc, char **av);
+void		init_input_cmds_heredoc(t_pipex *pipex, int argc, char **av,
+				char **envp);
 #endif

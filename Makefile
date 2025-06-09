@@ -4,7 +4,8 @@ LIBFT_DIR = Libft
 LIBFT = $(LIBFT_DIR)/libft.a
 LIBFT_DEP = $(filter-out $(LIBFT), $(wildcard $(LIBFT_DIR)/*))
 
-SRCS = init_struct_bonus.c path_utils_bonus.c pipex_bonus.c error_and_free_bonus.c processes_bonus.c
+SRCS = init_struct_bonus.c path_utils_bonus.c pipex_bonus.c \
+	   error_and_free_bonus.c processes_bonus.c heredoc_bonus.c
 
 OBJS = $(SRCS:.c=.o)
 

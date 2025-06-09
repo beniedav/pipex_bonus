@@ -6,7 +6,7 @@
 /*   By: badou <badou@student.42barcelona.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 19:14:09 by badou             #+#    #+#             */
-/*   Updated: 2025/06/05 19:18:49 by badou            ###   ########.fr       */
+/*   Updated: 2025/06/09 17:53:50 by badou            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@ void	init_input_fds(t_pipex *pipex, int argc, char **av)
 {
 	pipex->infile = av[1];
 	pipex->outfile = av[argc - 1];
-
 	pipex->infile_fd = open(pipex->infile, O_RDONLY);
 	if (pipex->infile_fd < 0)
 	{
@@ -24,8 +23,8 @@ void	init_input_fds(t_pipex *pipex, int argc, char **av)
 		if (errno == EACCES)
 			pipex->permission_denied = 1;
 	}
-
-	pipex->outfile_fd = open(pipex->outfile, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+	pipex->outfile_fd = open(pipex->outfile, O_CREAT | O_WRONLY | O_TRUNC,
+			0644);
 	if (pipex->outfile_fd < 0)
 	{
 		perror(pipex->outfile);
@@ -37,19 +36,15 @@ void	init_input_fds(t_pipex *pipex, int argc, char **av)
 void	init_input_cmds(t_pipex *pipex, int argc, char **av, char **envp)
 {
 	int	i;
-	int	cmd_start = 2;
-	int	cmd_end = argc - 2;
 
-	pipex->cmd_count = cmd_end - cmd_start + 1;
-
+	pipex->cmd_count = argc - 3;
 	pipex->cmds = malloc(sizeof(char **) * pipex->cmd_count);
 	if (!pipex->cmds)
 		custom_exit("malloc cmds failed", 1);
-
 	i = 0;
-	while (cmd_start + i <= cmd_end)
+	while (i < pipex->cmd_count)
 	{
-		pipex->cmds[i] = ft_split(av[cmd_start + i], ' ');
+		pipex->cmds[i] = ft_split(av[i + 2], ' ');
 		if (!pipex->cmds[i])
 		{
 			while (--i >= 0)
@@ -59,7 +54,6 @@ void	init_input_cmds(t_pipex *pipex, int argc, char **av, char **envp)
 		}
 		i++;
 	}
-
 	pipex->cmd_paths = get_path_var(envp);
 	if (!pipex->cmd_paths)
 		custom_exit("couldn't extract PATH", 1);
@@ -96,7 +90,6 @@ void	allocate_pipes(t_pipex *pipex)
 	pipex->pipes = malloc(sizeof(int *) * (pipex->cmd_count - 1));
 	if (!pipex->pipes)
 		custom_exit("malloc pipes failed", 1);
-
 	i = 0;
 	while (i < pipex->cmd_count - 1)
 	{
@@ -111,13 +104,19 @@ void	allocate_pipes(t_pipex *pipex)
 
 void	init_struct(t_pipex *pipex, char **av, char **envp, int argc)
 {
-	init_input_fds(pipex, argc, av);
-	init_input_cmds(pipex, argc, av, envp);
+	if (pipex->heredoc)
+	{
+		init_input_fds_heredoc(pipex, argc, av);
+		init_input_cmds_heredoc(pipex, argc, av, envp);
+	}
+	else
+	{
+		init_input_fds(pipex, argc, av);
+		init_input_cmds(pipex, argc, av, envp);
+	}
 	init_cmds(pipex);
-
 	pipex->pids = malloc(sizeof(pid_t) * pipex->cmd_count);
 	if (!pipex->pids)
 		custom_exit("malloc pids failed", 1);
-
 	allocate_pipes(pipex);
 }

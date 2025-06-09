@@ -6,7 +6,7 @@
 /*   By: badou <badou@student.42barcelona.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 19:02:27 by badou             #+#    #+#             */
-/*   Updated: 2025/06/05 19:10:13 by badou            ###   ########.fr       */
+/*   Updated: 2025/06/09 17:05:10 by badou            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,17 +63,10 @@ void	cleanup(t_pipex *pipex)
 		}
 		free(pipex->pipes);
 	}
-	if (pipex->cmds)
-	{
-		i = 0;
-		while (i < pipex->cmd_count)
-		{
-			free_arr(pipex->cmds[i]);
-			i++;
-		}
-		free(pipex->cmds);
-	}
+	i = 0;
+	while (pipex->cmds && i < pipex->cmd_count)
+		free_arr(pipex->cmds[i++]);
+	free(pipex->cmds);
 	free_arr(pipex->cmd_paths);
 	free(pipex->pids);
 }
-

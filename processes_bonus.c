@@ -1,19 +1,34 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   processes_bonus.c                                  :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: badou <badou@student.42barcelona.com>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/06/09 16:57:37 by badou             #+#    #+#             */
+/*   Updated: 2025/06/09 17:08:14 by badou            ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "pipex_bonus.h"
 
-void	setup_pipe_fds(t_pipex *pipex, int i)
+void	dup_null(int std_fd, int mode)
 {
 	int	null_fd;
 
+	null_fd = open("/dev/null", mode);
+	dup2(null_fd, std_fd);
+	safe_close(null_fd);
+}
+
+void	setup_pipe_fds(t_pipex *pipex, int i)
+{
 	if (i == 0)
 	{
 		if (pipex->infile_fd >= 0)
 			dup2(pipex->infile_fd, STDIN_FILENO);
 		else
-		{
-			null_fd = open("/dev/null", O_RDONLY);
-			dup2(null_fd, STDIN_FILENO);
-			safe_close(null_fd);
-		}
+			dup_null(STDIN_FILENO, O_RDONLY);
 		dup2(pipex->pipes[i][1], STDOUT_FILENO);
 	}
 	else if (i == pipex->cmd_count - 1)
@@ -22,11 +37,7 @@ void	setup_pipe_fds(t_pipex *pipex, int i)
 		if (pipex->outfile_fd >= 0)
 			dup2(pipex->outfile_fd, STDOUT_FILENO);
 		else
-		{
-			null_fd = open("/dev/null", O_WRONLY);
-			dup2(null_fd, STDOUT_FILENO);
-			safe_close(null_fd);
-		}
+			dup_null(STDOUT_FILENO, O_WRONLY);
 	}
 	else
 	{
@@ -48,6 +59,18 @@ void	close_all_pipes(t_pipex *pipex)
 	}
 }
 
+static void	child_exec(t_pipex *pipex, int i, char **envp)
+{
+	setup_pipe_fds(pipex, i);
+	close_all_pipes(pipex);
+	safe_close(pipex->infile_fd);
+	safe_close(pipex->outfile_fd);
+	if (pipex->cmds[i][0])
+		execve(pipex->cmds[i][0], pipex->cmds[i], envp);
+	cleanup(pipex);
+	exit(127);
+}
+
 void	exec_processes(t_pipex *pipex, char **envp)
 {
 	int	i;
@@ -60,32 +83,19 @@ void	exec_processes(t_pipex *pipex, char **envp)
 		if (pipex->pids[i] < 0)
 			error_and_exit("fork", 1);
 		if (pipex->pids[i] == 0)
-		{
-			setup_pipe_fds(pipex, i);
-			close_all_pipes(pipex);
-			safe_close(pipex->infile_fd);
-			safe_close(pipex->outfile_fd);
-			if (pipex->cmds[i][0])
-				execve(pipex->cmds[i][0], pipex->cmds[i], envp);
-			cleanup(pipex);
-			exit(127);
-		}
+			child_exec(pipex, i, envp);
 		i++;
 	}
-
 	close_all_pipes(pipex);
 	safe_close(pipex->infile_fd);
 	safe_close(pipex->outfile_fd);
 	i = 0;
 	while (i < pipex->cmd_count)
-	{
-		waitpid(pipex->pids[i], &status, 0);
-		i++;
-	}
+		waitpid(pipex->pids[i++], &status, 0);
 	cleanup(pipex);
+	if (pipex->permission_denied == 1)
+		exit(1);
 	if (WIFEXITED(status))
 		exit(WEXITSTATUS(status));
-	else
-		exit(1);
+	exit(1);
 }
-

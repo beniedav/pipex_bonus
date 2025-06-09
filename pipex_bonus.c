@@ -6,7 +6,7 @@
 /*   By: badou <badou@student.42barcelona.com>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/05 18:54:15 by badou             #+#    #+#             */
-/*   Updated: 2025/06/05 19:01:06 by badou            ###   ########.fr       */
+/*   Updated: 2025/06/09 18:05:05 by badou            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,9 @@ int	main(int ac, char **av, char **envp)
 {
 	t_pipex	pipex;
 
+	if (ac < 5)
+		custom_exit("Expected 4 arguments", 1);
+	pipex.heredoc = (ft_strncmp(av[1], "here_doc", 9) == 0);
 	pipex_init(&pipex);
 	init_struct(&pipex, av, envp, ac);
 	exec_processes(&pipex, envp);
